@@ -1,8 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles } from './util/util';
-import fs from "fs";
-import * as path from 'path';
 
 (async () => {
 
@@ -35,16 +33,13 @@ import * as path from 'path';
 
   app.get('/filteredimage', async (req, res) => {
     try {
-      let storedFiles = fs.readdirSync(`${__dirname}/util/tmp/`);
-      const files = storedFiles.map((file) => path.join(__dirname, "util", "tmp", file))
-      deleteLocalFiles(files);
-
       let { image_url } = req.query;
       if (!image_url) {
         return res.status(400).send({ message: 'Image url is required' });
       }
       const filteredPath = await filterImageFromURL(image_url);
       res.status(200).sendFile(filteredPath);
+      res.on("finish", () => deleteLocalFiles([filteredPath]));
     } catch(e) {
       res.status(500).send("Error processing image");
     }
