@@ -32,6 +32,23 @@ import * as path from 'path';
   /**************************************************************************** */
 
   //! END @TODO1
+
+  app.get('/filteredimage', async (req, res) => {
+    try {
+      let storedFiles = fs.readdirSync(`${__dirname}/util/tmp/`);
+      const files = storedFiles.map((file) => path.join(__dirname, "util", "tmp", file))
+      deleteLocalFiles(files);
+
+      let { image_url } = req.query;
+      if (!image_url) {
+        return res.status(400).send({ message: 'Image url is required' });
+      }
+      const filteredPath = await filterImageFromURL(image_url);
+      res.status(200).sendFile(filteredPath);
+    } catch(e) {
+      res.status(500).send("Error processing image");
+    }
+  });
   
   // Root Endpoint
   // Displays a simple message to the user
